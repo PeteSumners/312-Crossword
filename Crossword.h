@@ -29,7 +29,7 @@ Crossword* ReadFromFile (const char fileName[]);
 
 // Prints all positions of a word in the crossword (up-down, left-right).
 // Input: ASCII string from user.
-void PrintWordPositions (char word[]);
+void PrintWordPositions (Crossword* crossword, char word[]);
 
 // Returns length of longest (vertical) word.
 uint32_t VertMaxWordLength (Crossword* crossword);

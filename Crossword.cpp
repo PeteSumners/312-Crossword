@@ -40,7 +40,7 @@ Crossword* ReadFromFile (const char fileName[]) {
     // Get matrix.
     // Return crossword.
 
-    Crossword* crossword;
+    Crossword* crossword = NULL;
     FILE *filePtr = fopen(fileName, "r");
 
     int32_t rowCount;
@@ -57,7 +57,6 @@ Crossword* ReadFromFile (const char fileName[]) {
                 for (uint32_t i = 0; i < rowCount; i++) { // Get matrix data now.
                     if (fgets(currentRow, colCount + 1, filePtr) != NULL) {
 
-                        puts(currentRow);
                         for (uint32_t j = 0; j < colCount; j++) { // No need to store null chars.
                             crossword->matrix[i * colCount + j] = currentRow[j];
                         }
@@ -111,6 +110,8 @@ uint32_t VertMaxWordLength (Crossword* crossword){
 }
 
 void PrintVertWordsOfLength(Crossword* crossword, uint32_t length) {
+    printf("Printing longest vertical words:\n");
+
     // Print ALL vert words of length, one line for ea. word.
     int32_t tempCounter = 0, wordStartIndex = 0; // wordStartIndex is starting index of possible word of length length.
 
@@ -119,9 +120,7 @@ void PrintVertWordsOfLength(Crossword* crossword, uint32_t length) {
         for (int32_t j = 0; j < crossword->rows; j++) {
             if (isalpha(crossword->matrix[j * crossword->cols + i])) { // Start temp counter when letter is seen.
                 tempCounter++;
-                printf("%d,", tempCounter);
             } else { // Stop temp counter when letters stop being seen.
-                putchar('\n');
                 if (tempCounter == length) {
                     // Print word b/c it's of length length.
                     for (int32_t k = 0; k < length; k++) {
@@ -133,7 +132,6 @@ void PrintVertWordsOfLength(Crossword* crossword, uint32_t length) {
             }
 
             if (j == crossword->rows - 1) { // In case word ends at end of column.
-                putchar('\n');
                 if (tempCounter == length) {
                     // Print word b/c it's of length length.
                     for (int32_t k = 0; k < length; k++) {
@@ -153,12 +151,97 @@ void PrintVertWordsOfLength(Crossword* crossword, uint32_t length) {
 int FindAsymmetry (Crossword* crossword) {
     // Inefficient, simple way:
     // Loop through matrix, looking for '*'.
+    int32_t isSymmetric = 1; // Default to symmetric.
+    printf("Asymmetric black square locations:\nrow, col\n");
+    for (int32_t i = 0; i < crossword->rows; i++) {
+        for (int32_t j = 0; j < crossword->cols; j++) {
+            if (crossword->matrix [i * crossword->cols + j] == '*') {
+                if (crossword->matrix[j * crossword->cols + i] != '*') {
+                    isSymmetric = 0;
+                    printf ("%d, %d\n", i, j);
+                }
+            }
+        }
+    }
+
+    printf ("(Crossword is ");
+    if (isSymmetric) {
+        printf ("symmetric.)\n");
+    } else {
+        printf("not symmetric.)\n");
+    }
     // If '*' is encountered, check for '*' at inverse coords.
     // - If there's something else, print current coords on their own line.
 }
 
-void PrintWordPositions (char word[]) {
-    // Loop through crossword
+void PrintWordPositions (Crossword* crossword, char word[]) {
+    int32_t currentIndex; // Current index used to compare word w/ words found in crossword.
+    char currentMatrixChar; // Used for comparison.
+    int32_t equal = 0; // Whether matrix word and char word are equal.
+    int32_t coordToSave; // row/col to save after string comparison.
+    if (*word == 0) return; // No match if string is null.
+
+    printf("Horizontal matches:\nrow, col\n");
+    // Loop through crossword in row-major order.
+    for (int32_t i = 0; i < crossword->rows; i++) {
+        for (int32_t j = 0; j < crossword->cols; j++) {
+            if (isalpha(crossword->matrix[i * crossword->cols + j])) {
+                // Start comparison.
+
+                for (currentIndex = 0, equal = 0; word[currentIndex] != 0; j++, currentIndex++, equal = 1) {
+                    currentMatrixChar = crossword->matrix[i * crossword->cols + j];
+
+                    if (j == crossword-> cols) { // Not equal if reached end of matrix w/o reaching end of word.
+                        equal = 0;
+                        break;
+                    }
+                    if (!isalpha(currentMatrixChar)) { // Not equal if next matrix char isn't alphabetical.
+                        equal = 0;
+                        break;
+                    }
+                    if (currentMatrixChar != word[currentIndex]) { // Actual character comparison.
+                        equal = 0;
+                        break;
+                    }
+                }
+
+                if (equal) {
+                    printf("%d, %d\n", i, j - currentIndex);
+                }
+            }
+        }
+    }
+
+    printf("\nVertical matches:\nrow, col\n");
+    // Loop through crossword in row-major order.
+    for (int32_t i = 0; i < crossword->cols; i++) {
+        for (int32_t j = 0; j < crossword->rows; j++) {
+            if (isalpha(crossword->matrix[j * crossword->cols + i])) {
+                // Start comparison.
+
+                for (currentIndex = 0, equal = 0; word[currentIndex] != 0; j++, currentIndex++, equal = 1) {
+                    currentMatrixChar = crossword->matrix[j * crossword->cols + i];
+
+                    if (j == crossword-> cols) { // Not equal if reached end of matrix w/o reaching end of word.
+                        equal = 0;
+                        break;
+                    }
+                    if (!isalpha(currentMatrixChar)) { // Not equal if next matrix char isn't alphabetical.
+                        equal = 0;
+                        break;
+                    }
+                    if (currentMatrixChar != word[currentIndex]) { // Actual character comparison.
+                        equal = 0;
+                        break;
+                    }
+                }
+
+                if (equal) {
+                    printf("%d, %d\n", j - currentIndex, i);
+                }
+            }
+        }
+    }
 }
 
 char* GetUserString () {
@@ -167,13 +250,12 @@ char* GetUserString () {
     userString = (char*) malloc (FILENAME_SIZE_STEP * sizeof(char));
 
     char currentChar;
-    printf ("Input file name: ");
     while (1) {
         currentChar = getchar();
 
         if (currentChar == EOF || currentChar == '\n') break; // I didn't use brackets because it's only one line!
 
-        if (stringLength >= stringSize) { // Increase capacity if required.
+        if (stringLength >= stringSize + 1) { // Increase capacity if required. +1 for null terminator.
             stringSize += FILENAME_SIZE_STEP;
             userString = (char*) realloc(userString, stringSize * sizeof(char));
 
@@ -185,6 +267,7 @@ char* GetUserString () {
 
         userString[stringLength++] = currentChar;
     }
+    userString[stringLength++] = 0;
     return userString;
 }
 
