@@ -7,16 +7,14 @@ int32_t GetUserCommand ();
 void ExecuteCommand (Crossword* crossword, int32_t command);
 
 int main() {
-    printf ("Input file name: ");
-    char* fileName = GetUserString();
-    Crossword* crossword = ReadFromFile(fileName);
-    free(fileName);
+    Crossword *crossword;
+    int32_t cmd = GetUserCommand();
 
-    if (crossword == NULL) return 0;
+    ExecuteCommand(crossword, cmd);
 
-    ExecuteCommand(crossword, GetUserCommand());
-
-    DestroyCrossword(crossword);
+    if (crossword != NULL) {
+        DestroyCrossword(crossword);
+    }
     return 0;
 }
 
@@ -29,6 +27,7 @@ int32_t GetUserCommand () {
         printf("(1) Print longest vertical words.\n");
         printf("(2) Print locations of given word.\n");
         printf("(3) Test for symmetry.\n");
+        printf("(4) Run tests.\n");
 
         printf("\n");
 
@@ -36,7 +35,7 @@ int32_t GetUserCommand () {
         cmd = *cmdStr - '0';
         free(cmdStr);
 
-        if (1 <= cmd && cmd <= 3) {
+        if (1 <= cmd && cmd <= 4) {
             break;
         } else {
             printf("Invalid input!");
@@ -49,6 +48,14 @@ int32_t GetUserCommand () {
 void ExecuteCommand (Crossword* crossword, int32_t command) {
     char* userStr;
     int32_t temp; // Just a temp int.
+
+    if (command != 4) {
+        printf("Input file name: ");
+        char *fileName = GetUserString();
+        crossword = ReadFromFile(fileName);
+        free(fileName);
+        if (crossword == NULL) return;
+    }
 
     switch (command) {
         case 1:
@@ -64,6 +71,9 @@ void ExecuteCommand (Crossword* crossword, int32_t command) {
             break;
         case 3:
             FindAsymmetry(crossword);
+            break;
+        case 4:
+            RunTests();
             break;
         default:
             printf("Error! Invalid command!\n");

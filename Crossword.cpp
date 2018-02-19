@@ -43,13 +43,12 @@ Crossword* ReadFromFile (const char fileName[]) {
     Crossword* crossword = NULL;
     FILE *filePtr = fopen(fileName, "r");
 
-    int32_t rowCount;
-    int32_t colCount;
+    int32_t rowCount = -1;
+    int32_t colCount = -1;
 
     if (filePtr != NULL) {
 
-        if (fscanf(filePtr, "%d %d\n", &rowCount, &colCount) != NULL) { // != NULL just to be clear
-                                                                        // even though it's not necessary.
+        if (fscanf(filePtr, "%d %d\n", &rowCount, &colCount) == 2) { // Should get 2 arguments from this.
             if (rowCount >= 0 && colCount >= 0) { // Don't mess with neg. dimensions.
                 crossword = CreateCrossword (rowCount, colCount);
 
@@ -274,4 +273,45 @@ char* GetUserString () {
 int32_t Max (int32_t a, int32_t b) {
     if (a > b) return a;
     else return b;
+}
+
+void RunTests () {
+    Crossword* crossword;
+    int32_t temp;
+
+    printf("Running tests...");
+
+    printf("\n\nLongest vertical words test...\n");
+    crossword = ReadFromFile("VertLengthTest.txt");
+    temp = VertMaxWordLength(crossword);
+    printf("Max word length: %d\n", temp);
+    PrintVertWordsOfLength(crossword, temp);
+    DestroyCrossword(crossword);
+
+    printf("\n\nFind \"abcd\" test...\n");
+    crossword = ReadFromFile("FindABCDTest.txt");
+    PrintWordPositions(crossword, "abcd");
+    DestroyCrossword(crossword);
+
+    printf("\n\nSymmetry failure test...\n");
+    crossword = ReadFromFile("SymmetryFail.txt");
+    FindAsymmetry(crossword);
+    DestroyCrossword(crossword);
+
+    printf("\n\nSymmetry success test...\n");
+    crossword = ReadFromFile("SymmetryPass.txt");
+    FindAsymmetry(crossword);
+    DestroyCrossword(crossword);
+
+    printf("\n\nEmpty crossword test...\n");
+    crossword = ReadFromFile("EmptyCrossword.txt");
+    FindAsymmetry(crossword);
+    DestroyCrossword(crossword);
+
+    printf("\n\nDimension mismatch test...\n");
+    crossword = ReadFromFile("DimensionMismatch.txt");
+
+    printf ("\n\nNull file pointer test...\n");
+    crossword = ReadFromFile("asduifhaspiudfhasd%$TGD(FVUFoiufhc aspduf          .totallyafileextension");
+    return;
 }
